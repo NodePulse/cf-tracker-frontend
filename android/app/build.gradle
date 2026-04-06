@@ -43,21 +43,32 @@ react {
     //   See https://github.com/react-native-community/cli/blob/main/docs/commands.md#bundle
     // extraPackagerArgs = []
 
-    /* Hermes Commands */
-    //   The hermes compiler command to run. By default it is 'hermesc'
-    // hermesCommand = "$rootDir/my-custom-hermesc/bin/hermesc"
-    //
-    //   The list of flags to pass to the Hermes compiler. By default is "-O", "-output-source-map"
-    // hermesFlags = ["-O", "-output-source-map"]
-
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
 
 /**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+ * Set this to true to create four separate APKs instead of one,
+ * one for each native architecture. This is useful if you don't
+ * want to ship a single huge APK that contains binaries for all architectures.
  */
-def enableProguardInReleaseBuilds = false
+def enableSeparateBuildPerCPUArchitecture = true
+
+/**
+ * Set this to true to run Proguard on Release builds to combine and optimize your code.
+ */
+def enableProguardInReleaseBuilds = true
+
+/**
+ * Set this to true to shrink the size of your resources in Release builds.
+ * This is only used in combination with Proguard/R8.
+ */
+def enableResourceShrinking = true
+
+/**
+ * Set this to true to compress the size of your native libraries in Release builds.
+ */
+def enableNativeLibraryCompression = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -82,9 +93,26 @@ android {
         applicationId "com.cftracker"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName "1.0.0"
+        resConfigs "en"
     }
+
+    splits {
+        abi {
+            reset()
+            enable enableSeparateBuildPerCPUArchitecture
+            universalApk true
+            include "arm64-v8a" // Covering almost all modern devices for a ~26MB universal APK
+        }
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true // Force ZIP compression for native libraries
+        }
+    }
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -102,6 +130,7 @@ android {
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources enableResourceShrinking
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }
