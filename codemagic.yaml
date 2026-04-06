@@ -1,0 +1,42 @@
+# Codemagic configuration for CFTracker Android
+# See https://docs.codemagic.io/yaml/react-native/ for more details
+
+workflows:
+  android-workflow:
+    name: CFTracker Android Workflow
+    instance_type: mac_mini_m1
+    max_build_duration: 60
+    environment:
+      node: 22.11.0 # Matched with engine in package.json
+      groups:
+        # - signing_variables # Uncomment after adding your Keystore variables in Codemagic UI
+      vars:
+        PACKAGE_NAME: "com.cftracker"
+        # EMAIL_RECIPIENT: "user@example.com" # Define this in Codemagic variables for build notifications
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Install dependencies
+        script: npm install
+      - name: Update Version Code
+        script: |
+          # Automatically increment versionCode based on Codemagic build number
+          LATEST_BUILD_NUMBER=$(($(codemagic-print-latest-build-number) + 1))
+          sed -i "s/versionCode [0-9]*/versionCode $LATEST_BUILD_NUMBER/" android/app/build.gradle
+      - name: Build Android
+        script: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+    artifacts:
+      - android/app/build/outputs/apk/release/*.apk
+    publishing:
+      email:
+        recipients:
+          - ${EMAIL_RECIPIENT} # Injects the variable from the environment or UI
