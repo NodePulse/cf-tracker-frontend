@@ -4,14 +4,17 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Dashboard } from '../screens/Dashboard';
 import { Submissions } from '../screens/Submissions';
 import { SubmissionDetail } from '../screens/SubmissionDetail';
-import { colors } from '../theme/index';
-import { LayoutDashboard, Code2 } from 'lucide-react-native';
+import { useTheme } from '../theme/ThemeContext';
+import { LayoutDashboard, Code2, Palette } from 'lucide-react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ThemeSettings } from '../screens/ThemeSettings';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function SubmissionsStack() {
+  const { colors } = useTheme();
   return (
     <Stack.Navigator
       screenOptions={{
@@ -26,6 +29,8 @@ function SubmissionsStack() {
 }
 
 export function AppNavigator() {
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -37,8 +42,8 @@ export function AppNavigator() {
           return {
             backgroundColor: colors.surface,
             borderTopColor: colors.border,
-            height: 64,
-            paddingBottom: 10,
+            height: 64 + Math.max(insets.bottom, 0),
+            paddingBottom: Math.max(insets.bottom, 10),
             paddingTop: 8,
           };
         })(route),
@@ -64,6 +69,16 @@ export function AppNavigator() {
           tabBarLabel: 'Submissions',
           tabBarIcon: ({ color, size }) => (
             <Code2 size={size + 2} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Theme"
+        component={ThemeSettings}
+        options={{
+          tabBarLabel: 'Theme',
+          tabBarIcon: ({ color, size }) => (
+            <Palette size={size + 2} color={color} />
           ),
         }}
       />

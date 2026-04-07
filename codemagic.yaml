@@ -1,18 +1,17 @@
-# Codemagic configuration for CFTracker Android
-# See https://docs.codemagic.io/yaml/react-native/ for more details
-
 workflows:
   android-workflow:
-    name: CFTracker Android Workflow
+    name: CFTracker Android Pipeline
     instance_type: mac_mini_m1
     max_build_duration: 60
     environment:
-      node: 22.11.0 # Matched with engine in package.json
-      groups:
-        # - signing_variables # Uncomment after adding your Keystore variables in Codemagic UI
+      node: 22.11.0
+      java: 17
       vars:
-        PACKAGE_NAME: "com.cftracker"
-        # EMAIL_RECIPIENT: "user@example.com" # Define this in Codemagic variables for build notifications
+        PACKAGE_NAME: 'com.cftracker'
+    cache:
+      cache_paths:
+        - ~/.gradle/caches
+        - $CM_BUILD_DIR/node_modules
     triggering:
       events:
         - push
@@ -21,22 +20,52 @@ workflows:
         - pattern: main
           include: true
           source: true
+      cancel_previous_builds: true
     scripts:
       - name: Install dependencies
-        script: npm install
-      - name: Update Version Code
         script: |
-          # Automatically increment versionCode based on Codemagic build number
-          LATEST_BUILD_NUMBER=$(($(codemagic-print-latest-build-number) + 1))
-          sed -i "s/versionCode [0-9]*/versionCode $LATEST_BUILD_NUMBER/" android/app/build.gradle
-      - name: Build Android
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
+
+      - name: Lint
+        script: npm run lint
+
+      - name: Test
+        script: npm run test
+
+      - name: Update versionCode
+        script: |
+          NEW_VERSION_CODE="${BUILD_NUMBER:-${PROJECT_BUILD_NUMBER:-1}}"
+          if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' -E "s/versionCode [0-9]+/versionCode ${NEW_VERSION_CODE}/" android/app/build.gradle
+          else
+            sed -i -E "s/versionCode [0-9]+/versionCode ${NEW_VERSION_CODE}/" android/app/build.gradle
+          fi
+          echo "versionCode=${NEW_VERSION_CODE}"
+
+      - name: Setup signing
+        script: |
+          if [ -n "$CM_KEYSTORE" ]; then
+            echo "$CM_KEYSTORE" | base64 --decode > android/app/release.keystore
+          fi
+
+      - name: Build APK
         script: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease \
+            -PRELEASE_STORE_FILE=release.keystore \
+            -PRELEASE_STORE_PASSWORD="$RELEASE_STORE_PASSWORD" \
+            -PRELEASE_KEY_ALIAS="$RELEASE_KEY_ALIAS" \
+            -PRELEASE_KEY_PASSWORD="$RELEASE_KEY_PASSWORD"
+
     artifacts:
       - android/app/build/outputs/apk/release/*.apk
+      - android/app/build/outputs/mapping/release/mapping.txt
     publishing:
       email:
         recipients:
-          - ${EMAIL_RECIPIENT} # Injects the variable from the environment or UI
+          - ${EMAIL_RECIPIENT}

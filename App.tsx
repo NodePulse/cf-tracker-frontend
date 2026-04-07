@@ -1,35 +1,33 @@
 import React from 'react';
-import { StatusBar, useColorScheme } from 'react-native';
+import { StatusBar } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { AppNavigator } from './src/navigation/AppNavigator';
-import { colors } from './src/theme/index';
+import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
 
-function App() {
-  const isDarkMode = useColorScheme() === 'dark';
+function ThemedNavigation() {
+  const { colors, navTheme, activeTheme } = useTheme();
+  const barStyle = activeTheme === 'light' ? 'dark-content' : 'light-content';
 
   return (
-    <SafeAreaProvider>
-      <StatusBar barStyle="light-content" backgroundColor={colors.background} />
-      <NavigationContainer theme={{
-        dark: true,
-        colors: {
-          primary: colors.primary,
-          background: colors.background,
-          card: colors.surface,
-          text: colors.text,
-          border: colors.border,
-          notification: colors.accent,
-        },
-        fonts: {
-          regular: { fontFamily: 'System', fontWeight: '400' },
-          medium: { fontFamily: 'System', fontWeight: '500' },
-          bold: { fontFamily: 'System', fontWeight: '700' },
-          heavy: { fontFamily: 'System', fontWeight: '800' },
-        }
-      }}>
+    <>
+      <StatusBar
+        barStyle={barStyle as any}
+        backgroundColor={colors.background}
+      />
+      <NavigationContainer theme={navTheme as any}>
         <AppNavigator />
       </NavigationContainer>
+    </>
+  );
+}
+
+function App() {
+  return (
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <ThemedNavigation />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }
