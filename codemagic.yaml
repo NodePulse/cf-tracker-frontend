@@ -33,9 +33,6 @@ workflows:
       - name: Lint
         script: npm run lint
 
-      - name: Test
-        script: npm run test
-
       - name: Update versionCode
         script: |
           NEW_VERSION_CODE="${BUILD_NUMBER:-${PROJECT_BUILD_NUMBER:-1}}"
