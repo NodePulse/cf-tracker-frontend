@@ -4,6 +4,8 @@ workflows:
     instance_type: mac_mini_m1
     max_build_duration: 60
     environment:
+      groups:
+        - pandaSham
       node: 22.11.0
       java: 17
       vars:
@@ -46,7 +48,12 @@ workflows:
       - name: Setup signing
         script: |
           if [ -n "$CM_KEYSTORE" ]; then
+            echo "Decoding Keystore from Environment Variable..."
             echo "$CM_KEYSTORE" | base64 --decode > android/app/release.keystore
+          else
+            echo "ERROR: CM_KEYSTORE environment variable is empty or not loaded."
+            echo "Did you put it in the 'pandaSham' Environment Group in Codemagic?"
+            exit 1
           fi
 
       - name: Build APK
