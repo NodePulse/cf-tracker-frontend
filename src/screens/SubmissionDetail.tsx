@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Share,
   Platform,
+  RefreshControl,
 } from 'react-native';
 import { cfApi } from '../api/cfApi';
 import { useTheme } from '../theme/ThemeContext';
@@ -21,20 +22,28 @@ export function SubmissionDetail({ route }: any) {
   const [source, setSource] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadSource = useCallback(async () => {
+    try {
+      const res = await cfApi.getSource(id);
+      setSource(res.source);
+    } catch (error) {
+      console.error('Failed to load source', error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, [id]);
 
   useEffect(() => {
-    async function loadSource() {
-      try {
-        const res = await cfApi.getSource(id);
-        setSource(res.source);
-      } catch (error) {
-        console.error('Failed to load source', error);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadSource();
-  }, [id]);
+  }, [loadSource]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    loadSource();
+  }, [loadSource]);
 
   const handleShare = async () => {
     if (source) {
@@ -90,6 +99,13 @@ export function SubmissionDetail({ route }: any) {
       <ScrollView
         style={styles.sourceScroll}
         contentContainerStyle={{ paddingBottom: 40 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
       >
         {source ? (
           <View style={styles.codeContainer}>
@@ -145,7 +161,11 @@ function createStyles(colors: any, spacing: any) {
       color: colors.text,
       marginBottom: 2,
     },
-    submissionId: { fontSize: 13, color: colors.textTertiary, fontWeight: '600' },
+    submissionId: {
+      fontSize: 13,
+      color: colors.textTertiary,
+      fontWeight: '600',
+    },
     actions: { flexDirection: 'row' },
     actionButton: { padding: spacing.sm, marginLeft: spacing.sm },
     sourceScroll: { flex: 1 },
@@ -159,7 +179,10 @@ function createStyles(colors: any, spacing: any) {
       padding: spacing.md,
     },
     codeText: {
-      fontFamily: Platform.select({ ios: 'CourierNewPSMT', android: 'monospace' }),
+      fontFamily: Platform.select({
+        ios: 'CourierNewPSMT',
+        android: 'monospace',
+      }),
       fontSize: 13,
       color: '#D4D4D4',
       lineHeight: 20,

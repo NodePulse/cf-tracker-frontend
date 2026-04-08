@@ -12,12 +12,7 @@ import {
 import { cfApi, DashboardData } from '../api/cfApi';
 import { useTheme } from '../theme/ThemeContext';
 import { LineChart, ContributionGraph, PieChart } from 'react-native-chart-kit';
-import {
-  Award,
-  Target,
-  Zap,
-  TrendingUp,
-} from 'lucide-react-native';
+import { Award, Target, Zap, TrendingUp } from 'lucide-react-native';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -197,7 +192,7 @@ export function Dashboard() {
         </View>
       </View>
 
-      <View style={styles.section}>
+      <View style={[styles.section, { marginBottom: 0 }]}>
         <Text style={styles.sectionTitle}>Activity</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <ContributionGraph
@@ -215,8 +210,6 @@ export function Dashboard() {
           />
         </ScrollView>
       </View>
-
-      <View style={{ height: 60 }} />
     </ScrollView>
   );
 }

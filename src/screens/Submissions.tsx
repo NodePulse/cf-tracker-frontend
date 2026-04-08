@@ -34,6 +34,7 @@ export function Submissions() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [offset, setOffset] = useState(0);
   const [hasNext, setHasNext] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const navigation = useNavigation<NavigationProp<SubmissionsStackParamList>>();
 
   const fetchSubmissions = useCallback(async (newOffset = 0) => {
@@ -51,6 +52,7 @@ export function Submissions() {
     } finally {
       setLoading(false);
       setLoadingMore(false);
+      setRefreshing(false);
     }
   }, []);
 
@@ -64,6 +66,11 @@ export function Submissions() {
       fetchSubmissions(offset + 20);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchSubmissions(0);
+  }, [fetchSubmissions]);
 
   const filteredSubmissions = submissions.filter(s =>
     s.problem.toLowerCase().includes(searchQuery.toLowerCase()),
@@ -150,6 +157,8 @@ export function Submissions() {
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={onRefresh}
         ListFooterComponent={
           loadingMore ? (
             <ActivityIndicator
