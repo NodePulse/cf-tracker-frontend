@@ -1,14 +1,17 @@
 import React from 'react';
+import { Platform } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Dashboard } from '../screens/Dashboard';
 import { Submissions } from '../screens/Submissions';
 import { SubmissionDetail } from '../screens/SubmissionDetail';
 import { useTheme } from '../theme/ThemeContext';
-import { LayoutDashboard, Code2, Palette } from 'lucide-react-native';
+import { LayoutDashboard, Code2, Palette, ListTodo } from 'lucide-react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemeSettings } from '../screens/ThemeSettings';
+import { Todos } from '../screens/Todos';
+import { useFlags } from '@flagsmith/flagsmith/react';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -31,9 +34,14 @@ function SubmissionsStack() {
 export function AppNavigator() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const flags = useFlags(['todofeatures']);
+  console.log(flags);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarHideOnKeyboard: Platform.OS === 'android',
         tabBarStyle: (route => {
           const routeName = getFocusedRouteNameFromRoute(route) ?? '';
           if (routeName === 'SubmissionDetail') {
@@ -60,17 +68,20 @@ export function AppNavigator() {
           tabBarIcon: ({ color, size }) => (
             <LayoutDashboard size={size + 2} color={color} />
           ),
+          headerShown: true,
         }}
       />
       <Tab.Screen
         name="Submissions"
         component={SubmissionsStack}
-        options={{
+        options={({ route }) => ({
           tabBarLabel: 'Submissions',
           tabBarIcon: ({ color, size }) => (
             <Code2 size={size + 2} color={color} />
           ),
-        }}
+          headerShown:
+            getFocusedRouteNameFromRoute(route) !== 'SubmissionDetail',
+        })}
       />
       <Tab.Screen
         name="Theme"
@@ -80,8 +91,22 @@ export function AppNavigator() {
           tabBarIcon: ({ color, size }) => (
             <Palette size={size + 2} color={color} />
           ),
+          headerShown: true,
         }}
       />
+      {flags.todofeatures.value && (
+        <Tab.Screen
+          name="Todos"
+          component={Todos}
+          options={{
+            tabBarLabel: 'Tasks',
+            tabBarIcon: ({ color, size }) => (
+              <ListTodo size={size + 2} color={color} />
+            ),
+            headerShown: true,
+          }}
+        />
+      )}
     </Tab.Navigator>
   );
 }

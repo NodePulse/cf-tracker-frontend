@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { ThemeProvider, useTheme } from './src/theme/ThemeContext';
+import flagsmith from '@flagsmith/react-native';
+import { FlagsmithProvider } from '@flagsmith/flagsmith/react';
 
 function ThemedNavigation() {
   const { colors, navTheme, activeTheme } = useTheme();
@@ -24,11 +26,18 @@ function ThemedNavigation() {
 
 function App() {
   return (
-    <SafeAreaProvider>
-      <ThemeProvider>
-        <ThemedNavigation />
-      </ThemeProvider>
-    </SafeAreaProvider>
+    <FlagsmithProvider
+      options={{
+        environmentID: 'J6yaGAH8KEVTTAc9cvuh5g',
+      }}
+      flagsmith={flagsmith}
+    >
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <ThemedNavigation />
+        </ThemeProvider>
+      </SafeAreaProvider>
+    </FlagsmithProvider>
   );
 }
 

@@ -12,12 +12,18 @@ import {
 } from 'react-native';
 import { cfApi } from '../api/cfApi';
 import { useTheme } from '../theme/ThemeContext';
-import { XCircle, Share2, Copy, Check } from 'lucide-react-native';
+import { XCircle, Share2, Copy, Check, ChevronLeft } from 'lucide-react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
+import { useNavigation } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CodeHighlighter from 'react-native-code-highlighter';
+import { atomOneDark } from 'react-syntax-highlighter/dist/cjs/styles/hljs';
 
 export function SubmissionDetail({ route }: any) {
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { colors, spacing } = useTheme();
-  const styles = createStyles(colors, spacing);
+  const styles = createStyles(colors, spacing, insets);
   const { id, problem } = route.params;
   const [source, setSource] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -76,6 +82,12 @@ export function SubmissionDetail({ route }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
+          <ChevronLeft size={28} color={colors.text} />
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.problemTitle} numberOfLines={1}>
             {problem}
@@ -109,9 +121,17 @@ export function SubmissionDetail({ route }: any) {
       >
         {source ? (
           <View style={styles.codeContainer}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              <Text style={styles.codeText}>{source}</Text>
-            </ScrollView>
+            <CodeHighlighter
+              hljsStyle={atomOneDark}
+              language="cpp"
+              textStyle={styles.codeText}
+              scrollViewProps={{
+                horizontal: true,
+                showsHorizontalScrollIndicator: false,
+              }}
+            >
+              {source}
+            </CodeHighlighter>
           </View>
         ) : (
           <View style={styles.errorContainer}>
@@ -131,7 +151,7 @@ export function SubmissionDetail({ route }: any) {
   );
 }
 
-function createStyles(colors: any, spacing: any) {
+function createStyles(colors: any, spacing: any, insets: any) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     loadingContainer: {
@@ -141,11 +161,11 @@ function createStyles(colors: any, spacing: any) {
       backgroundColor: colors.background,
     },
     header: {
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.md,
+      paddingTop: Math.max(insets.top, spacing.xxl),
+      paddingBottom: spacing.sm,
+      paddingHorizontal: spacing.sm,
       backgroundColor: colors.surface,
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
@@ -154,6 +174,10 @@ function createStyles(colors: any, spacing: any) {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.2,
       shadowRadius: 4,
+    },
+    backButton: {
+      padding: spacing.sm,
+      marginRight: spacing.xs,
     },
     problemTitle: {
       fontSize: 18,

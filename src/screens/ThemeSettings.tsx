@@ -2,7 +2,10 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useTheme } from '../theme/ThemeContext';
 
-const options: { key: 'system' | 'light' | 'dark' | 'amoled'; label: string }[] = [
+const options: {
+  key: 'system' | 'light' | 'dark' | 'amoled';
+  label: string;
+}[] = [
   { key: 'system', label: 'System Default' },
   { key: 'light', label: 'Light' },
   { key: 'dark', label: 'Dark' },
@@ -15,7 +18,6 @@ export function ThemeSettings() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Theme</Text>
       <View style={styles.list}>
         {options.map(opt => {
           const selected = themeName === opt.key;
@@ -23,11 +25,19 @@ export function ThemeSettings() {
             <TouchableOpacity
               key={opt.key}
               onPress={() => setTheme(opt.key)}
-              style={[styles.item, selected ? { borderColor: colors.primary } : null]}
+              style={[
+                styles.item,
+                selected ? { borderColor: colors.primary } : null,
+              ]}
               activeOpacity={0.7}
             >
               <Text style={styles.itemLabel}>{opt.label}</Text>
-              <View style={[styles.dot, selected ? { backgroundColor: colors.primary } : null]} />
+              <View
+                style={[
+                  styles.dot,
+                  selected ? { backgroundColor: colors.primary } : null,
+                ]}
+              />
             </TouchableOpacity>
           );
         })}

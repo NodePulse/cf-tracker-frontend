@@ -11,6 +11,7 @@ import {
 import { cfApi, Submission } from '../api/cfApi';
 import { useTheme } from '../theme/ThemeContext';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   CheckCircle2,
   XCircle,
@@ -26,8 +27,9 @@ type SubmissionsStackParamList = {
 };
 
 export function Submissions() {
+  const insets = useSafeAreaInsets();
   const { colors, spacing, typography } = useTheme();
-  const styles = createStyles(colors, spacing, typography);
+  const styles = createStyles(colors, spacing, typography, insets);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -127,8 +129,8 @@ export function Submissions() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerArea}>
-        {/* <Text style={styles.pageTitle}>Submissions</Text> */}
+      {/* <View style={styles.headerArea}>
+        <Text style={styles.pageTitle}>Submissions</Text>
         <View style={styles.searchContainer}>
           <View style={styles.searchInputWrapper}>
             <Search
@@ -147,7 +149,7 @@ export function Submissions() {
             />
           </View>
         </View>
-      </View>
+      </View> */}
 
       <FlatList
         data={filteredSubmissions}
@@ -237,7 +239,7 @@ function FooterItem({ icon, text }: { icon: React.ReactNode; text: string }) {
   );
 }
 
-function createStyles(colors: any, spacing: any, typography: any) {
+function createStyles(colors: any, spacing: any, typography: any, insets: any) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     listContent: { padding: spacing.md, paddingTop: spacing.sm },
@@ -249,7 +251,7 @@ function createStyles(colors: any, spacing: any, typography: any) {
     },
     headerArea: {
       backgroundColor: colors.background,
-      paddingTop: spacing.lg,
+      paddingTop: Math.max(insets.top, spacing.md),
       paddingBottom: spacing.sm,
     },
     pageTitle: {
